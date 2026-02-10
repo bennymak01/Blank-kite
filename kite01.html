@@ -1,0 +1,699 @@
++   1 <!DOCTYPE html>
++   2 <html lang="zh-TW">
++   3 <head>
++   4 <meta charset="UTF-8">
++   5 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
++   6 <title>CS Kites 風箏店 — DIY 風箏塗色</title>
++   7 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;600;700;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
++   8 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
++   9 <style>
++  10 :root {
++  11   --sky-top: #29B6F6;
++  12   --sky-mid: #81D4FA;
++  13   --sky-bottom: #B3E5FC;
++  14   --grass: #66BB6A;
++  15   --grass-dark: #43A047;
++  16   --sun: #FFD54F;
++  17   --accent: #FF6D00;
++  18   --accent2: #AA00FF;
++  19   --pink: #F50057;
++  20   --panel-bg: rgba(255,255,255,0.95);
++  21   --panel-shadow: rgba(0,0,0,0.08);
++  22   --text: #263238;
++  23   --text-sub: #546E7A;
++  24   --timer-ok: #00C853;
++  25   --timer-warn: #FFD600;
++  26   --timer-danger: #FF1744;
++  27   --radius: 20px;
++  28   --font: 'Fredoka', 'Noto Sans TC', sans-serif;
++  29   --font-fun: 'Baloo 2', 'Fredoka', sans-serif;
++  30 }
++  31 .dark {
++  32   --panel-bg: rgba(28,35,48,0.96);
++  33   --panel-shadow: rgba(0,0,0,0.3);
++  34   --text: #ECEFF1;
++  35   --text-sub: #90A4AE;
++  36   --sky-top: #0D47A1;
++  37   --sky-mid: #1565C0;
++  38   --sky-bottom: #1E88E5;
++  39   --grass: #2E7D32;
++  40   --grass-dark: #1B5E20;
++  41 }
++  42 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
++  43 html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);color:var(--text);touch-action:none;-webkit-user-select:none;user-select:none;}
++  44 
++  45 /* === SCREENS === */
++  46 .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease, transform .5s ease;opacity:0;pointer-events:none;z-index:1;}
++  47 .screen.active{opacity:1;pointer-events:auto;z-index:10;}
++  48 .screen.leaving{opacity:0;transform:scale(.92) translateY(-30px);}
++  49 
++  50 /* === FLOATING DECOR (start bg) === */
++  51 .bg-decor{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
++  52 .bg-cloud{position:absolute;background:#fff;border-radius:50%;opacity:.45;filter:blur(1px);}
++  53 .dark .bg-cloud{background:rgba(200,220,255,.15);}
++  54 .bg-kite-float{position:absolute;animation:bgKiteFloat 6s ease-in-out infinite alternate;}
++  55 @keyframes bgKiteFloat{0%{transform:translate(0,0) rotate(-5deg);}50%{transform:translate(12px,-18px) rotate(3deg);}100%{transform:translate(-8px,-10px) rotate(-2deg);}}
++  56 
++  57 /* === START SCREEN === */
++  58 #startScreen{background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 45%,var(--sky-bottom) 68%,var(--grass) 85%,var(--grass-dark) 100%);}
++  59 .start-inner{position:relative;z-index:2;text-align:center;max-width:380px;width:100%;padding:0 16px;}
++  60 .logo{font-family:var(--font-fun);font-size:clamp(30px,8vw,56px);font-weight:800;color:#fff;text-shadow:3px 4px 0 rgba(0,0,0,.12);line-height:1.1;letter-spacing:1px;}
++  61 .logo .kite-emoji{display:inline-block;animation:logoKite 3s ease-in-out infinite alternate;}
++  62 @keyframes logoKite{0%{transform:translateY(0) rotate(-5deg);}100%{transform:translateY(-8px) rotate(5deg);}}
++  63 .tagline{font-size:clamp(13px,3.5vw,17px);color:rgba(255,255,255,.92);margin:4px 0 20px;font-weight:600;}
++  64 .section-label{font-size:clamp(14px,3.8vw,18px);font-weight:700;color:#fff;margin-bottom:12px;text-shadow:1px 1px 0 rgba(0,0,0,.08);}
++  65 .kite-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;}
++  66 .kite-card{background:var(--panel-bg);border:3px solid transparent;border-radius:var(--radius);padding:12px 6px 8px;cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 16px var(--panel-shadow);opacity:0;animation:cardPop .5s ease forwards;}
++  67 .kite-card:nth-child(1){animation-delay:.1s;}
++  68 .kite-card:nth-child(2){animation-delay:.2s;}
++  69 .kite-card:nth-child(3){animation-delay:.3s;}
++  70 .kite-card:nth-child(4){animation-delay:.4s;}
++  71 @keyframes cardPop{from{opacity:0;transform:scale(.7) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
++  72 .kite-card:active{transform:scale(.94)!important;}
++  73 .kite-card.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,109,0,.3),0 6px 20px var(--panel-shadow);transform:scale(1.04);}
++  74 .kite-card svg{width:56px;height:56px;}
++  75 .kite-card span{font-size:12px;font-weight:700;}
++  76 .btn-go{font-family:var(--font-fun);font-size:clamp(20px,5.5vw,28px);font-weight:700;padding:14px 52px;background:linear-gradient(135deg,var(--accent),#FF9100);color:#fff;border:none;border-radius:50px;cursor:pointer;box-shadow:0 6px 24px rgba(255,109,0,.45);transition:all .25s;letter-spacing:1px;position:relative;overflow:hidden;}
++  77 .btn-go::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);transform:translateX(-100%);animation:btnShine 3s ease infinite;}
++  78 @keyframes btnShine{0%,80%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
++  79 .btn-go:active{transform:scale(.95);}
++  80 
++  81 /* === DRAW SCREEN === */
++  82 #drawScreen{background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 60%,var(--sky-bottom) 100%);justify-content:flex-start;}
++  83 .draw-top{width:100%;display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--panel-bg);backdrop-filter:blur(12px);z-index:20;box-shadow:0 2px 12px var(--panel-shadow);gap:8px;}
++  84 .round-pill{font-family:var(--font-fun);font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--accent2),#D500F9);color:#fff;padding:3px 12px;border-radius:20px;white-space:nowrap;}
++  85 /* Circular timer */
++  86 .timer-ring-wrap{position:relative;width:48px;height:48px;flex-shrink:0;}
++  87 .timer-ring{transform:rotate(-90deg);}
++  88 .timer-ring-bg{fill:none;stroke:rgba(0,0,0,.08);stroke-width:4;}
++  89 .dark .timer-ring-bg{stroke:rgba(255,255,255,.08);}
++  90 .timer-ring-fg{fill:none;stroke:var(--timer-ok);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .9s linear, stroke .5s;}
++  91 .timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-fun);font-size:16px;font-weight:800;}
++  92 .timer-num.danger{color:var(--timer-danger);animation:timerPulse .5s ease infinite alternate;}
++  93 @keyframes timerPulse{to{transform:scale(1.12);}}
++  94 .brand-tiny{font-size:10px;font-weight:700;opacity:.5;white-space:nowrap;}
++  95 
++  96 .canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;position:relative;overflow:hidden;}
++  97 /* Encourage bubble */
++  98 .encourage-bubble{position:absolute;top:12%;left:50%;transform:translateX(-50%) scale(0);font-family:var(--font-fun);font-size:clamp(18px,5vw,26px);font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),#FF9100);padding:8px 22px;border-radius:30px;z-index:25;pointer-events:none;box-shadow:0 4px 16px rgba(255,109,0,.4);white-space:nowrap;}
++  99 .encourage-bubble.show{animation:bubblePop 2.5s ease forwards;}
++ 100 @keyframes bubblePop{0%{transform:translateX(-50%) scale(0);}10%{transform:translateX(-50%) scale(1.15);}20%{transform:translateX(-50%) scale(1);}80%{transform:translateX(-50%) scale(1);opacity:1;}100%{transform:translateX(-50%) scale(.8) translateY(-20px);opacity:0;}}
++ 101 
++ 102 /* Canvas glow for final seconds */
++ 103 .canvas-glow{border-radius:12px;transition:box-shadow .5s;}
++ 104 .canvas-glow.warn-glow{box-shadow:0 0 0 4px rgba(255,23,68,.5),0 0 24px rgba(255,23,68,.3);}
++ 105 
++ 106 #drawCanvas{background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);touch-action:none;cursor:crosshair;}
++ 107 .dark #drawCanvas{background:#f0f0f0;}
++ 108 
++ 109 /* Times up overlay */
++ 110 .timesup-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:30;opacity:0;pointer-events:none;transition:opacity .3s;}
++ 111 .timesup-overlay.show{opacity:1;pointer-events:auto;}
++ 112 .timesup-text{font-family:var(--font-fun);font-size:clamp(32px,10vw,56px);font-weight:800;color:#fff;text-shadow:3px 4px 0 rgba(0,0,0,.2);animation:timesupZoom 1s ease forwards;}
++ 113 @keyframes timesupZoom{0%{transform:scale(3);opacity:0;}40%{transform:scale(1);opacity:1;}80%{transform:scale(1);opacity:1;}100%{transform:scale(.9) translateY(-10px);opacity:0;}}
++ 114 
++ 115 /* Toolbar */
++ 116 .toolbar{width:100%;background:var(--panel-bg);backdrop-filter:blur(12px);padding:6px 6px 10px;display:flex;flex-direction:column;gap:6px;box-shadow:0 -2px 12px var(--panel-shadow);z-index:20;}
++ 117 .tool-row{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;}
++ 118 .swatch{width:28px;height:28px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.1);flex-shrink:0;}
++ 119 .swatch:active{transform:scale(.85);}
++ 120 .swatch.on{border-color:var(--text);transform:scale(1.18);box-shadow:0 0 0 2px rgba(0,0,0,.15),0 0 12px currentColor;}
++ 121 .tbtn{width:38px;height:38px;border-radius:12px;border:2px solid transparent;background:rgba(0,0,0,.05);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-sub);transition:all .2s;flex-shrink:0;}
++ 122 .dark .tbtn{background:rgba(255,255,255,.08);}
++ 123 .tbtn:active{transform:scale(.85);}
++ 124 .tbtn.on{border-color:var(--accent);color:var(--accent);background:rgba(255,109,0,.12);}
++ 125 .tbtn.clr-brush{color:#FF6D00;}
++ 126 .tbtn.clr-eraser{color:#F50057;}
++ 127 .tbtn.clr-fill{color:#2979FF;}
++ 128 .tbtn.clr-sparkle{color:#FFD600;}
++ 129 .tbtn.clr-rainbow{color:#AA00FF;}
++ 130 .tbtn.clr-stamp{color:#00C853;}
++ 131 .tbtn.clr-undo{color:#78909C;}
++ 132 .tbtn.clr-done{color:#00C853;}
++ 133 .sz-label{font-size:10px;font-weight:700;opacity:.55;min-width:16px;text-align:center;}
++ 134 .sz-slider{width:70px;accent-color:var(--accent);height:4px;}
++ 135 
++ 136 /* Stamp Panel */
++ 137 .stamp-panel{display:none;background:var(--panel-bg);border-radius:16px 16px 0 0;padding:8px;gap:6px;flex-wrap:wrap;justify-content:center;box-shadow:0 -4px 20px var(--panel-shadow);animation:slideUp .3s ease;}
++ 138 .stamp-panel.show{display:flex;}
++ 139 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
++ 140 .stamp-item{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;border-radius:12px;transition:all .2s;background:rgba(0,0,0,.04);}
++ 141 .dark .stamp-item{background:rgba(255,255,255,.06);}
++ 142 .stamp-item:active{transform:scale(.8);}
++ 143 .stamp-item.on{background:rgba(0,200,83,.15);box-shadow:0 0 0 2px var(--timer-ok);}
++ 144 
++ 145 /* === SKY SCREEN === */
++ 146 #skyScreen{overflow:hidden;}
++ 147 .sky-bg{position:absolute;inset:0;transition:background 1s;}
++ 148 .sky-bg.day{background:linear-gradient(180deg,#0D47A1 0%,#1565C0 15%,#42A5F5 35%,#81D4FA 55%,#B3E5FC 70%,#A5D6A7 86%,#66BB6A 92%,#43A047 100%);}
++ 149 .sky-bg.night{background:linear-gradient(180deg,#0a0e27 0%,#141b3d 20%,#1a237e 40%,#283593 60%,#3949ab 75%,#1B5E20 90%,#0D3B0E 100%);}
++ 150 .sky-layer{position:absolute;inset:0;overflow:hidden;}
++ 151 
++ 152 /* Sun/Moon */
++ 153 .celestial{position:absolute;border-radius:50%;top:6%;right:10%;}
++ 154 .c-sun{width:80px;height:80px;background:radial-gradient(circle,#FFD54F 35%,rgba(255,213,79,0) 70%);animation:sunPulse 4s ease-in-out infinite alternate;}
++ 155 .c-moon{width:50px;height:50px;background:radial-gradient(circle at 35% 35%,#FFF9C4 40%,rgba(255,249,196,.1) 70%);animation:sunPulse 5s ease-in-out infinite alternate;}
++ 156 @keyframes sunPulse{to{transform:scale(1.15);opacity:.85;}}
++ 157 
++ 158 /* Rainbow */
++ 159 .rainbow-arc{position:absolute;width:140%;height:50%;left:-20%;top:10%;border-radius:50% 50% 0 0;border:12px solid transparent;border-image:linear-gradient(90deg,#EF5350,#FF9800,#FFEB3B,#66BB6A,#42A5F5,#5C6BC0,#AB47BC) 1;opacity:0;animation:rainbowFade 2s ease 1s forwards;pointer-events:none;}
++ 160 @keyframes rainbowFade{to{opacity:.35;}}
++ 161 
++ 162 /* Clouds in sky */
++ 163 .sky-cloud{position:absolute;background:#fff;border-radius:50%;opacity:.5;filter:blur(2px);}
++ 164 .dark .sky-cloud{background:rgba(180,200,230,.12);}
++ 165 @keyframes driftRight{from{transform:translateX(-140px);}to{transform:translateX(calc(100vw + 140px));}}
++ 166 
++ 167 /* Wind lines */
++ 168 .wind-line{position:absolute;height:1.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);border-radius:2px;animation:windMove linear infinite;}
++ 169 .dark .wind-line{background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);}
++ 170 @keyframes windMove{from{transform:translateX(-200px);}to{transform:translateX(calc(100vw + 200px));}}
++ 171 
++ 172 /* Birds */
++ 173 .bird{position:absolute;animation:birdFly linear infinite;}
++ 174 .bird svg{width:20px;height:12px;}
++ 175 @keyframes birdFly{from{transform:translateX(-40px);}to{transform:translateX(calc(100vw + 40px));}}
++ 176 
++ 177 /* Stars */
++ 178 .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2s infinite alternate;}
++ 179 @keyframes twinkle{0%{opacity:.2;}100%{opacity:1;}}
++ 180 
++ 181 /* Shooting star */
++ 182 .shooting-star{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;opacity:0;}
++ 183 .shooting-star.go{animation:shootStar 1.2s ease-in forwards;}
++ 184 @keyframes shootStar{0%{opacity:0;transform:translate(0,0);}10%{opacity:1;}100%{opacity:0;transform:translate(-220px,180px);}}
++ 185 
++ 186 /* Grass wave */
++ 187 .grass-strip{position:absolute;bottom:0;width:100%;height:16%;}
++ 188 .grass-blade{position:absolute;bottom:0;width:6px;border-radius:3px 3px 0 0;transform-origin:bottom center;animation:grassSway 3s ease-in-out infinite alternate;}
++ 189 @keyframes grassSway{0%{transform:rotate(-6deg);}100%{transform:rotate(6deg);}}
++ 190 
++ 191 /* Flying kite */
++ 192 .fly-kite{position:absolute;opacity:0;transition:all 1.8s cubic-bezier(.22,.68,.32,1.1);}
++ 193 .fly-kite.launched{opacity:1;}
++ 194 .fly-kite.bob{animation:kiteBob 4.5s ease-in-out infinite alternate;}
++ 195 .fly-kite:nth-child(2){animation-delay:-2.2s;animation-duration:5s;}
++ 196 @keyframes kiteBob{0%{transform:translate(0,0) rotate(-3deg);}33%{transform:translate(10px,-14px) rotate(2deg);}66%{transform:translate(-6px,-8px) rotate(-1deg);}100%{transform:translate(4px,-4px) rotate(1.5deg);}}
++ 197 .fly-kite img{border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.2);}
++ 198 .kite-tail{position:absolute;display:flex;flex-direction:column;align-items:center;gap:0;left:50%;transform:translateX(-50%);}
++ 199 .tail-bow{width:10px;height:10px;border-radius:50%;animation:bowSwing 2s ease-in-out infinite alternate;transform-origin:top center;}
++ 200 @keyframes bowSwing{0%{transform:translateX(-6px);}100%{transform:translateX(6px);}}
++ 201 .kite-string-svg{position:absolute;left:50%;transform:translateX(-50%);}
++ 202 
++ 203 /* Person */
++ 204 .person-group{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);}
++ 205 .person-group svg .wave-arm{animation:armWave 1.5s ease-in-out infinite alternate;transform-origin:25px 28px;}
++ 206 @keyframes armWave{0%{transform:rotate(0deg);}100%{transform:rotate(-30deg);}}
++ 207 
++ 208 /* Sky text */
++ 209 .sky-hud{position:absolute;top:4%;width:100%;text-align:center;z-index:5;padding:0 12px;}
++ 210 .sky-hud h2{font-family:var(--font-fun);font-size:clamp(22px,6.5vw,42px);font-weight:800;color:#fff;text-shadow:2px 3px 0 rgba(0,0,0,.15);opacity:0;animation:headBounce .8s ease .5s forwards;}
++ 211 .sky-hud p{font-size:clamp(12px,3.2vw,16px);color:rgba(255,255,255,.88);font-weight:600;margin-top:2px;opacity:0;animation:headBounce .6s ease .9s forwards;}
++ 212 @keyframes headBounce{0%{opacity:0;transform:scale(.5) translateY(20px);}70%{transform:scale(1.08) translateY(-3px);}100%{opacity:1;transform:scale(1) translateY(0);}}
++ 213 .sky-btns{position:absolute;bottom:3%;width:100%;display:flex;justify-content:center;gap:10px;padding:0 12px;z-index:5;}
++ 214 .sbtn{font-family:var(--font-fun);font-size:clamp(14px,3.8vw,18px);font-weight:700;padding:12px 22px;border:none;border-radius:50px;cursor:pointer;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:all .25s;}
++ 215 .sbtn:active{transform:scale(.93);}
++ 216 .sbtn-next{background:linear-gradient(135deg,var(--accent2),#D500F9);}
++ 217 .sbtn-save{background:linear-gradient(135deg,#00BFA5,#26A69A);}
++ 218 .sbtn-reset{background:linear-gradient(135deg,#546E7A,#78909C);}
++ 219 
++ 220 /* Fireworks */
++ 221 .firework{position:absolute;pointer-events:none;}
++ 222 .fw-dot{position:absolute;width:5px;height:5px;border-radius:50%;animation:fwBurst .9s ease-out forwards;}
++ 223 @keyframes fwBurst{0%{transform:translate(0,0) scale(1);opacity:1;}100%{opacity:0;}}
++ 224 
++ 225 /* Confetti */
++ 226 .confetti-box{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden;}
++ 227 .cft{position:absolute;top:-20px;animation:cftFall linear forwards;}
++ 228 @keyframes cftFall{0%{transform:translateY(0) rotate(0);opacity:1;}100%{transform:translateY(110vh) rotate(720deg);opacity:0;}}
++ 229 
++ 230 /* Modal */
++ 231 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
++ 232 .modal-bg.open{display:flex;}
++ 233 .modal-card{background:var(--panel-bg);border-radius:var(--radius);padding:24px;max-width:320px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);animation:modalIn .35s ease;}
++ 234 @keyframes modalIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
++ 235 .modal-card h3{font-family:var(--font-fun);font-size:20px;margin-bottom:10px;}
++ 236 .modal-card p{font-size:14px;margin-bottom:16px;opacity:.75;}
++ 237 .modal-row{display:flex;gap:10px;justify-content:center;}
++ 238 .mbtn{font-family:var(--font-fun);font-size:14px;font-weight:700;padding:10px 22px;border:none;border-radius:30px;cursor:pointer;color:#fff;transition:all .2s;}
++ 239 .mbtn:active{transform:scale(.92);}
++ 240 .mbtn-ok{background:linear-gradient(135deg,var(--accent),#FF9100);}
++ 241 .mbtn-cancel{background:rgba(0,0,0,.1);color:var(--text);}
++ 242 
++ 243 /* Responsive */
++ 244 @media(max-height:620px){
++ 245   .kite-card svg{width:44px;height:44px;}
++ 246   .kite-card{padding:8px 4px 6px;}
++ 247   .kite-grid{gap:8px;}
++ 248   .tagline{margin:2px 0 12px;}
++ 249   .timer-ring-wrap{width:40px;height:40px;}
++ 250   .timer-num{font-size:13px;}
++ 251 }
++ 252 </style>
++ 253 </head>
++ 254 <body>
++ 255 
++ 256 <!-- ===== START ===== -->
++ 257 <div id="startScreen" class="screen active">
++ 258   <div class="bg-decor" id="bgDecor"></div>
++ 259   <div class="start-inner">
++ 260     <div class="logo"><span class="kite-emoji">🪁</span> CS Kites 風箏店</div>
++ 261     <div class="tagline">DIY 風箏塗色工作坊 ✨</div>
++ 262     <div class="section-label">選擇你的風箏</div>
++ 263     <div class="kite-grid" id="kiteGrid"></div>
++ 264     <button class="btn-go" onclick="beginGame()">🎨 開始創作！</button>
++ 265   </div>
++ 266 </div>
++ 267 
++ 268 <!-- ===== DRAW ===== -->
++ 269 <div id="drawScreen" class="screen">
++ 270   <div class="draw-top">
++ 271     <div class="round-pill" id="roundPill">第 1 輪</div>
++ 272     <div class="timer-ring-wrap" id="timerWrap">
++ 273       <svg class="timer-ring" width="100%" height="100%" viewBox="0 0 48 48">
++ 274         <circle class="timer-ring-bg" cx="24" cy="24" r="20"/>
++ 275         <circle class="timer-ring-fg" id="timerArc" cx="24" cy="24" r="20" stroke-dasharray="125.66" stroke-dashoffset="0"/>
++ 276       </svg>
++ 277       <div class="timer-num" id="timerNum">1:00</div>
++ 278     </div>
++ 279     <div class="brand-tiny">CS Kites</div>
++ 280   </div>
++ 281   <div class="canvas-wrap" id="canvasWrap">
++ 282     <div class="encourage-bubble" id="encourage">✨ 加油！繼續畫！</div>
++ 283     <div class="timesup-overlay" id="timesupOverlay"><div class="timesup-text">⏰ 時間到！</div></div>
++ 284     <div class="canvas-glow" id="canvasGlow">
++ 285       <canvas id="drawCanvas"></canvas>
++ 286     </div>
++ 287   </div>
++ 288   <div class="stamp-panel" id="stampPanel"></div>
++ 289   <div class="toolbar">
++ 290     <div class="tool-row" id="palette"></div>
++ 291     <div class="tool-row">
++ 292       <button class="tbtn clr-brush on" id="tBrush" onclick="pickTool('brush')" title="畫筆"><i class="fa-solid fa-paintbrush"></i></button>
++ 293       <button class="tbtn clr-eraser" id="tEraser" onclick="pickTool('eraser')" title="橡皮擦"><i class="fa-solid fa-eraser"></i></button>
++ 294       <button class="tbtn clr-fill" id="tFill" onclick="pickTool('fill')" title="油漆桶"><i class="fa-solid fa-fill-drip"></i></button>
++ 295       <button class="tbtn clr-sparkle" id="tSparkle" onclick="pickTool('sparkle')" title="閃亮筆"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
++ 296       <button class="tbtn clr-rainbow" id="tRainbow" onclick="pickTool('rainbow')" title="彩虹筆"><i class="fa-solid fa-rainbow"></i></button>
++ 297       <button class="tbtn clr-stamp" id="tStamp" onclick="pickTool('stamp')" title="印章"><i class="fa-solid fa-star"></i></button>
++ 298       <button class="tbtn clr-undo" id="tUndo" onclick="doUndo()" title="撤銷"><i class="fa-solid fa-rotate-left"></i></button>
++ 299       <span class="sz-label" id="szLbl">8</span>
++ 300       <input type="range" class="sz-slider" id="szSlider" min="2" max="32" value="8" oninput="setBrushSz(this.value)">
++ 301       <button class="tbtn clr-done" id="tDone" onclick="earlyFinish()" title="完成"><i class="fa-solid fa-check"></i></button>
++ 302     </div>
++ 303   </div>
++ 304 </div>
++ 305 
++ 306 <!-- ===== SKY ===== -->
++ 307 <div id="skyScreen" class="screen">
++ 308   <div class="sky-bg" id="skyBg"></div>
++ 309   <div class="sky-layer" id="skyLayer"></div>
++ 310   <div class="sky-hud" id="skyHud"></div>
++ 311   <div class="sky-btns" id="skyBtns"></div>
++ 312 </div>
++ 313 
++ 314 <!-- Modal -->
++ 315 <div class="modal-bg" id="modalBg">
++ 316   <div class="modal-card" id="modalCard"></div>
++ 317 </div>
++ 318 <!-- Confetti -->
++ 319 <div class="confetti-box" id="confettiBox"></div>
++ 320 
++ 321 <script>
++ 322 /* ====== DARK MODE ====== */
++ 323 (function(){
++ 324   const mq = window.matchMedia('(prefers-color-scheme: dark)');
++ 325   if(mq.matches) document.documentElement.classList.add('dark');
++ 326   mq.addEventListener('change', e => e.matches ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'));
++ 327 })();
++ 328 const isDark = () => document.documentElement.classList.contains('dark');
++ 329 
++ 330 /* ====== AUDIO ====== */
++ 331 let _ac = null;
++ 332 function ac(){ if(!_ac) _ac = new (window.AudioContext||window.webkitAudioContext)(); return _ac; }
++ 333 function beep(freq,dur,type,vol){
++ 334   try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,c.currentTime);g.gain.setValueAtTime(vol||.12,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+dur);}catch(e){/**/}
++ 335 }
++ 336 function sfxSelect(){ beep(660,.12,'sine',.08); }
++ 337 function sfxColorPick(idx){ beep(330+idx*40,.15,'sine',.07); }
++ 338 function sfxPop(){ beep(500+Math.random()*200,.06,'sine',.05); }
++ 339 function sfxTick(t){ beep(440+(60-t)*8,.08,'square',.04); }
++ 340 function sfxChime(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.5,'sine',.1),i*140)); }
++ 341 function sfxCelebrate(){
++ 342   [523,587,659,698,784,880,988,1047].forEach((f,i)=>setTimeout(()=>beep(f,.35,'triangle',.08),i*90));
++ 343   setTimeout(()=>[1047,1319,1568].forEach((f,i)=>setTimeout(()=>beep(f,.7,'sine',.07),i*180)),850);
++ 344 }
++ 345 function sfxFirework(){ [1200,1400,1600,1800].forEach((f,i)=>setTimeout(()=>beep(f,.25,'sawtooth',.04),i*60)); }
++ 346 function sfxWhoosh(){
++ 347   try{const c=ac(),n=c.createBufferSource(),b=c.createBuffer(1,c.sampleRate*.35,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);n.buffer=b;const f=c.createBiquadFilter();f.type='bandpass';f.frequency.setValueAtTime(500,c.currentTime);f.frequency.exponentialRampToValueAtTime(180,c.currentTime+.35);const g=c.createGain();g.gain.setValueAtTime(.12,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);n.connect(f);f.connect(g);g.connect(c.destination);n.start();}catch(e){/**/}
++ 348 }
++ 349 
++ 350 /* ====== CONSTANTS ====== */
++ 351 const TOTAL_TIME = 60;
++ 352 const CIRC = 2*Math.PI*20; // timer ring circumference
++ 353 const COLORS = ['#EF5350','#FF7043','#FFA726','#FFEE58','#66BB6A','#26A69A','#42A5F5','#5C6BC0','#AB47BC','#EC407A','#8D6E63','#212121','#FFFFFF'];
++ 354 const STAMPS = ['⭐','❤️','🌈','😊','⚡','🌸','🦋','☁️','🎵','🔥','💎','🍀'];
++ 355 const KITES = [
++ 356   {id:'diamond',name:'菱形',svg:svgDiamond},
++ 357   {id:'fish',name:'魚鰭',svg:svgFish},
++ 358   {id:'triangle',name:'三角',svg:svgTriangle},
++ 359   {id:'butterfly',name:'蝴蝶',svg:svgButterfly},
++ 360 ];
++ 361 
++ 362 /* ====== STATE ====== */
++ 363 let selKite='diamond', round=1, color=COLORS[0], tool='brush', bsize=8, drawing=false, timer=null, timeLeft=TOTAL_TIME;
++ 364 let undoStack=[], artworks=[], hueAngle=0, selStamp=STAMPS[0];
++ 365 let canvas, ctx;
++ 366 
++ 367 /* ====== SVG KITE ICONS ====== */
++ 368 function svgDiamond(c){return `<svg viewBox="0 0 64 80"><polygon points="32,4 58,36 32,68 6,36" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><line x1="32" y1="4" x2="32" y2="68" stroke="#333" stroke-width="1" opacity=".2"/><line x1="6" y1="36" x2="58" y2="36" stroke="#333" stroke-width="1" opacity=".2"/></svg>`;}
++ 369 function svgFish(c){return `<svg viewBox="0 0 64 80"><ellipse cx="32" cy="30" rx="26" ry="18" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><path d="M14,42 Q32,72 50,42" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><circle cx="22" cy="26" r="3" fill="#333" opacity=".4"/><path d="M38,26 Q44,30 38,34" fill="none" stroke="#333" stroke-width="1.5" opacity=".3"/></svg>`;}
++ 370 function svgTriangle(c){return `<svg viewBox="0 0 64 80"><polygon points="32,4 60,68 4,68" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><line x1="32" y1="4" x2="32" y2="68" stroke="#333" stroke-width="1" opacity=".2"/></svg>`;}
++ 371 function svgButterfly(c){return `<svg viewBox="0 0 72 80"><path d="M36,12 Q14,4 8,32 Q4,52 36,46" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><path d="M36,12 Q58,4 64,32 Q68,52 36,46" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><path d="M36,46 Q24,54 20,68" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><path d="M36,46 Q48,54 52,68" fill="${c||'#fff'}" stroke="#333" stroke-width="2"/><line x1="36" y1="10" x2="36" y2="70" stroke="#333" stroke-width="2"/><circle cx="28" cy="28" r="4" fill="#333" opacity=".12"/><circle cx="44" cy="28" r="4" fill="#333" opacity=".12"/></svg>`;}
++ 372 
++ 373 /* ====== INIT START SCREEN ====== */
++ 374 function initStart(){
++ 375   // Kite grid
++ 376   const grid = document.getElementById('kiteGrid');
++ 377   grid.innerHTML='';
++ 378   KITES.forEach(k=>{
++ 379     const d=document.createElement('div');
++ 380     d.className='kite-card'+(k.id===selKite?' selected':'');
++ 381     d.innerHTML=k.svg('#E3F2FD')+`<span>${k.name}</span>`;
++ 382     d.onclick=()=>{ selKite=k.id; grid.querySelectorAll('.kite-card').forEach(el=>el.classList.remove('selected')); d.classList.add('selected'); sfxSelect(); };
++ 383     grid.appendChild(d);
++ 384   });
++ 385   // Floating background decor
++ 386   const bg=document.getElementById('bgDecor');
++ 387   bg.innerHTML='';
++ 388   for(let i=0;i<5;i++){
++ 389     const cl=document.createElement('div');
++ 390     cl.className='bg-cloud';
++ 391     const s=50+Math.random()*90;
++ 392     cl.style.cssText=`width:${s}px;height:${s*.45}px;top:${5+Math.random()*30}%;left:${Math.random()*80}%;animation:driftRight ${18+Math.random()*22}s linear infinite;animation-delay:${-Math.random()*20}s;`;
++ 393     bg.appendChild(cl);
++ 394   }
++ 395   // Floating mini kites on start bg
++ 396   const miniKites=['🪁','🪁','🪁'];
++ 397   miniKites.forEach((emoji,i)=>{
++ 398     const mk=document.createElement('div');
++ 399     mk.className='bg-kite-float';
++ 400     mk.style.cssText=`top:${8+i*14}%;left:${10+i*30}%;font-size:${28+i*6}px;animation-delay:${i*-2}s;animation-duration:${5+i*1.5}s;opacity:${.35+i*.1};`;
++ 401     mk.textContent=emoji;
++ 402     bg.appendChild(mk);
++ 403   });
++ 404 }
++ 405 
++ 406 /* ====== PALETTE ====== */
++ 407 function initPalette(){
++ 408   const p=document.getElementById('palette');
++ 409   p.innerHTML='';
++ 410   COLORS.forEach((c,i)=>{
++ 411     const s=document.createElement('div');
++ 412     s.className='swatch'+(c===color?' on':'');
++ 413     s.style.background=c;
++ 414     if(c==='#FFFFFF')s.style.border='2px solid #bbb';
++ 415     s.onclick=()=>{
++ 416       color=c; if(tool==='eraser')pickTool('brush');
++ 417       p.querySelectorAll('.swatch').forEach(el=>el.classList.remove('on'));
++ 418       s.classList.add('on');
++ 419       sfxColorPick(i);
++ 420     };
++ 421     p.appendChild(s);
++ 422   });
++ 423 }
++ 424 
++ 425 /* ====== STAMPS ====== */
++ 426 function initStamps(){
++ 427   const sp=document.getElementById('stampPanel');
++ 428   sp.innerHTML='';
++ 429   STAMPS.forEach(st=>{
++ 430     const d=document.createElement('div');
++ 431     d.className='stamp-item'+(st===selStamp?' on':'');
++ 432     d.textContent=st;
++ 433     d.onclick=()=>{
++ 434       selStamp=st;
++ 435       sp.querySelectorAll('.stamp-item').forEach(el=>el.classList.remove('on'));
++ 436       d.classList.add('on');
++ 437       sfxSelect();
++ 438     };
++ 439     sp.appendChild(d);
++ 440   });
++ 441 }
++ 442 
++ 443 /* ====== CANVAS ====== */
++ 444 function setupCanvas(){
++ 445   canvas=document.getElementById('drawCanvas');
++ 446   const wrap=document.getElementById('canvasWrap');
++ 447   const maxW=Math.min(wrap.clientWidth-16,420);
++ 448   const maxH=Math.min(wrap.clientHeight-16,520);
++ 449   const w=Math.min(maxW,maxH*.87);
++ 450   const h=w*1.15;
++ 451   canvas.width=w; canvas.height=h;
++ 452   canvas.style.width=w+'px'; canvas.style.height=h+'px';
++ 453   ctx=canvas.getContext('2d');
++ 454   ctx.fillStyle='#FFFFFF';
++ 455   ctx.fillRect(0,0,w,h);
++ 456   drawOutline();
++ 457   saveUndo();
++ 458   bindCanvas();
++ 459 }
++ 460 function drawOutline(){
++ 461   const w=canvas.width,h=canvas.height,cx=w/2,cy=h/2;
++ 462   ctx.save(); ctx.strokeStyle='rgba(0,0,0,.2)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
++ 463   const p=new Path2D();
++ 464   if(selKite==='diamond'){const hw=w*.42,hh=h*.46;p.moveTo(cx,cy-hh);p.lineTo(cx+hw,cy);p.lineTo(cx,cy+hh);p.lineTo(cx-hw,cy);p.closePath();}
++ 465   else if(selKite==='fish'){p.ellipse(cx,cy-h*.08,w*.38,h*.24,0,0,Math.PI*2);p.moveTo(cx-w*.2,cy+h*.1);p.quadraticCurveTo(cx,cy+h*.38,cx+w*.2,cy+h*.1);p.lineTo(cx-w*.2,cy+h*.1);}
++ 466   else if(selKite==='triangle'){const half=w*.42;p.moveTo(cx,cy-h*.42);p.lineTo(cx+half,cy+h*.38);p.lineTo(cx-half,cy+h*.38);p.closePath();}
++ 467   else{p.moveTo(cx,cy-h*.3);p.quadraticCurveTo(cx-w*.4,cy-h*.38,cx-w*.42,cy-h*.05);p.quadraticCurveTo(cx-w*.44,cy+h*.12,cx,cy+h*.05);p.quadraticCurveTo(cx+w*.44,cy+h*.12,cx+w*.42,cy-h*.05);p.quadraticCurveTo(cx+w*.4,cy-h*.38,cx,cy-h*.3);p.moveTo(cx,cy+h*.05);p.quadraticCurveTo(cx-w*.15,cy+h*.2,cx-w*.22,cy+h*.35);p.moveTo(cx,cy+h*.05);p.quadraticCurveTo(cx+w*.15,cy+h*.2,cx+w*.22,cy+h*.35);}
++ 468   ctx.stroke(p); ctx.setLineDash([]); ctx.restore();
++ 469 }
++ 470 function saveUndo(){if(undoStack.length>=25)undoStack.shift();undoStack.push(canvas.toDataURL());}
++ 471 function doUndo(){
++ 472   if(undoStack.length<=1)return;
++ 473   undoStack.pop();
++ 474   const img=new Image();img.onload=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0);};
++ 475   img.src=undoStack[undoStack.length-1];
++ 476   beep(380,.1,'sine',.06);
++ 477   // Shake canvas
++ 478   const glow=document.getElementById('canvasGlow');
++ 479   glow.style.animation='shakeCanvas .25s ease';
++ 480   setTimeout(()=>glow.style.animation='',300);
++ 481 }
++ 482 
++ 483 /* ====== DRAWING ====== */
++ 484 function getXY(e){
++ 485   const r=canvas.getBoundingClientRect(),sx=canvas.width/r.width,sy=canvas.height/r.height;
++ 486   if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
++ 487   return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
++ 488 }
++ 489 function onDown(e){
++ 490   e.preventDefault();
++ 491   if(tool==='fill'){floodFill(e);return;}
++ 492   if(tool==='stamp'){placeStamp(e);return;}
++ 493   drawing=true; hueAngle=0;
++ 494   const p=getXY(e);
++ 495   ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=bsize;
++ 496   if(tool==='eraser')ctx.strokeStyle='#FFFFFF';
++ 497   else if(tool==='rainbow')ctx.strokeStyle=`hsl(${hueAngle},85%,55%)`;
++ 498   else ctx.strokeStyle=color;
++ 499   sfxPop();
++ 500 }
++ 501 function onMove(e){
++ 502   e.preventDefault();if(!drawing)return;
++ 503   const p=getXY(e);
++ 504   if(tool==='rainbow'){
++ 505     hueAngle=(hueAngle+4)%360;
++ 506     ctx.strokeStyle=`hsl(${hueAngle},85%,55%)`;
++ 507     ctx.lineTo(p.x,p.y);ctx.stroke();
++ 508     ctx.beginPath();ctx.moveTo(p.x,p.y);
++ 509   } else if(tool==='sparkle'){
++ 510     ctx.strokeStyle=color;
++ 511     ctx.lineTo(p.x,p.y);ctx.stroke();
++ 512     // Sparkle particles on canvas
++ 513     for(let i=0;i<3;i++){
++ 514       const ox=p.x+(Math.random()-0.5)*bsize*2.5;
++ 515       const oy=p.y+(Math.random()-0.5)*bsize*2.5;
++ 516       const sz=1+Math.random()*3;
++ 517       ctx.save();
++ 518       ctx.globalAlpha=.3+Math.random()*.5;
++ 519       ctx.fillStyle=['#FFD600','#FFFFFF','#FF6D00','#E040FB'][Math.floor(Math.random()*4)];
++ 520       ctx.beginPath();ctx.arc(ox,oy,sz,0,Math.PI*2);ctx.fill();
++ 521       ctx.restore();
++ 522     }
++ 523     ctx.beginPath();ctx.moveTo(p.x,p.y);
++ 524   } else {
++ 525     ctx.lineTo(p.x,p.y);ctx.stroke();
++ 526   }
++ 527 }
++ 528 function onUp(e){if(e)e.preventDefault();if(!drawing)return;drawing=false;ctx.closePath();saveUndo();}
++ 529 
++ 530 function placeStamp(e){
++ 531   const p=getXY(e);
++ 532   ctx.save();
++ 533   ctx.font=`${bsize*3}px serif`;
++ 534   ctx.textAlign='center';ctx.textBaseline='middle';
++ 535   ctx.fillText(selStamp,p.x,p.y);
++ 536   ctx.restore();
++ 537   saveUndo();
++ 538   sfxPop();
++ 539 }
++ 540 
++ 541 function floodFill(e){
++ 542   const p=getXY(e),x=Math.floor(p.x),y=Math.floor(p.y),w=canvas.width,h=canvas.height;
++ 543   const id=ctx.getImageData(0,0,w,h),d=id.data,idx=(y*w+x)*4;
++ 544   const tR=d[idx],tG=d[idx+1],tB=d[idx+2],tA=d[idx+3];
++ 545   const tmp=document.createElement('div');tmp.style.color=color;document.body.appendChild(tmp);
++ 546   const comp=getComputedStyle(tmp).color;document.body.removeChild(tmp);
++ 547   const m=comp.match(/\d+/g);const fR=+m[0],fG=+m[1],fB=+m[2];
++ 548   if(tR===fR&&tG===fG&&tB===fB&&tA===255)return;
++ 549   const tol=32;
++ 550   const match=i=>Math.abs(d[i]-tR)<=tol&&Math.abs(d[i+1]-tG)<=tol&&Math.abs(d[i+2]-tB)<=tol&&Math.abs(d[i+3]-tA)<=tol;
++ 551   const stk=[[x,y]],vis=new Uint8Array(w*h);
++ 552   while(stk.length){const[cx,cy]=stk.pop();if(cx<0||cx>=w||cy<0||cy>=h)continue;const pi=cy*w+cx;if(vis[pi])continue;const ci=pi*4;if(!match(ci))continue;vis[pi]=1;d[ci]=fR;d[ci+1]=fG;d[ci+2]=fB;d[ci+3]=255;stk.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);}
++ 553   ctx.putImageData(id,0,0);saveUndo();sfxPop();
++ 554 }
++ 555 
++ 556 function bindCanvas(){
++ 557   canvas.addEventListener('mousedown',onDown);canvas.addEventListener('mousemove',onMove);canvas.addEventListener('mouseup',onUp);canvas.addEventListener('mouseleave',onUp);
++ 558   canvas.addEventListener('touchstart',onDown,{passive:false});canvas.addEventListener('touchmove',onMove,{passive:false});canvas.addEventListener('touchend',onUp,{passive:false});
++ 559 }
++ 560 
++ 561 /* ====== TOOLS ====== */
++ 562 function pickTool(t){
++ 563   tool=t;
++ 564   ['tBrush','tEraser','tFill','tSparkle','tRainbow','tStamp'].forEach(id=>{
++ 565     document.getElementById(id).classList.remove('on');
++ 566   });
++ 567   const map={brush:'tBrush',eraser:'tEraser',fill:'tFill',sparkle:'tSparkle',rainbow:'tRainbow',stamp:'tStamp'};
++ 568   if(map[t])document.getElementById(map[t]).classList.add('on');
++ 569   document.getElementById('stampPanel').classList.toggle('show',t==='stamp');
++ 570   canvas.style.cursor=t==='fill'?'crosshair':t==='stamp'?'cell':'crosshair';
++ 571   try{navigator.vibrate&&navigator.vibrate(8);}catch(e){/**/}
++ 572 }
++ 573 function setBrushSz(v){bsize=+v;document.getElementById('szLbl').textContent=v;}
++ 574 
++ 575 /* ====== TIMER ====== */
++ 576 function startTimer(){
++ 577   timeLeft=TOTAL_TIME;
++ 578   updateTimer();
++ 579   timer=setInterval(()=>{
++ 580     timeLeft--;
++ 581     updateTimer();
++ 582     if(timeLeft===30) showEncourage();
++ 583     if(timeLeft<=10&&timeLeft>0){ sfxTick(timeLeft); document.getElementById('canvasGlow').classList.add('warn-glow'); }
++ 584     if(timeLeft<=0){clearInterval(timer);timesUp();}
++ 585   },1000);
++ 586 }
++ 587 function updateTimer(){
++ 588   const m=Math.floor(timeLeft/60),s=timeLeft%60;
++ 589   const num=document.getElementById('timerNum');
++ 590   num.textContent=`${m}:${s.toString().padStart(2,'0')}`;
++ 591   // Ring
++ 592   const frac=timeLeft/TOTAL_TIME;
++ 593   const arc=document.getElementById('timerArc');
++ 594   arc.style.strokeDashoffset=CIRC*(1-frac);
++ 595   // Color
++ 596   let c=getComputedStyle(document.documentElement).getPropertyValue('--timer-ok').trim();
++ 597   if(timeLeft<=10)c=getComputedStyle(document.documentElement).getPropertyValue('--timer-danger').trim();
++ 598   else if(timeLeft<=30)c=getComputedStyle(document.documentElement).getPropertyValue('--timer-warn').trim();
++ 599   arc.style.stroke=c;
++ 600   num.classList.toggle('danger',timeLeft<=10);
++ 601 }
++ 602 function showEncourage(){
++ 603   const msgs=['✨ 加油！繼續畫！','🎨 好棒！加油！','💪 快完成啦！','🌟 畫得真好！'];
++ 604   const el=document.getElementById('encourage');
++ 605   el.textContent=msgs[Math.floor(Math.random()*msgs.length)];
++ 606   el.classList.remove('show');
++ 607   void el.offsetWidth;
++ 608   el.classList.add('show');
++ 609 }
++ 610 
++ 611 /* ====== TIME'S UP ====== */
++ 612 function timesUp(){
++ 613   sfxChime();
++ 614   const ov=document.getElementById('timesupOverlay');
++ 615   ov.classList.add('show');
++ 616   setTimeout(()=>{
++ 617     ov.classList.remove('show');
++ 618     artworks.push(canvas.toDataURL('image/png'));
++ 619     showSky();
++ 620   },1400);
++ 621 }
++ 622 function earlyFinish(){
++ 623   showModal('⏱️ 提前完成','確定結束這一輪嗎？',[
++ 624     {text:'繼續畫',cls:'mbtn-cancel',fn:hideModal},
++ 625     {text:'完成！',cls:'mbtn-ok',fn(){hideModal();clearInterval(timer);artworks.push(canvas.toDataURL('image/png'));sfxChime();showSky();}}
++ 626   ]);
++ 627 }
++ 628 
++ 629 /* ====== SCREEN SWITCH ====== */
++ 630 function showScreen(id){
++ 631   document.querySelectorAll('.screen.active').forEach(s=>{s.classList.add('leaving');setTimeout(()=>s.classList.remove('active','leaving'),500);});
++ 632   setTimeout(()=>document.getElementById(id).classList.add('active'),320);
++ 633 }
++ 634 
++ 635 /* ====== BEGIN ====== */
++ 636 function beginGame(){
++ 637   round=1; artworks=[]; undoStack=[];
++ 638   showScreen('drawScreen');
++ 639   document.getElementById('roundPill').textContent=`第 ${round} 輪`;
++ 640   document.getElementById('canvasGlow').classList.remove('warn-glow');
++ 641   setTimeout(()=>{ setupCanvas(); startTimer(); },420);
++ 642   sfxWhoosh();
++ 643 }
++ 644 
++ 645 /* ====== SKY ====== */
++ 646 function showSky(){
++ 647   sfxCelebrate();
++ 648   showScreen('skyScreen');
++ 649   setTimeout(buildSky,400);
++ 650   setTimeout(spawnConfetti,600);
++ 651   if(round===2)setTimeout(()=>{for(let i=0;i<3;i++)setTimeout(()=>launchFirework(),i*700);},1200);
++ 652 }
++ 653 
++ 654 function buildSky(){
++ 655   const bg=document.getElementById('skyBg');
++ 656   bg.className='sky-bg '+(isDark()?'night':'day');
++ 657   const layer=document.getElementById('skyLayer');
++ 658   layer.innerHTML='';
++ 659 
++ 660   // Sun or Moon
++ 661   const cel=document.createElement('div');
++ 662   cel.className='celestial '+(isDark()?'c-moon':'c-sun');
++ 663   layer.appendChild(cel);
++ 664 
++ 665   // Rainbow
++ 666   if(!isDark()){
++ 667     const rb=document.createElement('div');
++ 668     rb.className='rainbow-arc';
++ 669     // Use a pseudo approach with gradient border via box shadow trick
++ 670     rb.style.cssText='position:absolute;width:130%;height:40%;left:-15%;top:15%;border-radius:50% 50% 0 0;background:transparent;opacity:0;animation:rainbowFade 2s ease 1s forwards;pointer-events:none;';
++ 671     rb.style.boxShadow='inset 0 8px 0 #EF5350, inset 0 16px 0 #FF9800, inset 0 24px 0 #FFEB3B, inset 0 32px 0 #66BB6A, inset 0 40px 0 #42A5F5, inset 0 48px 0 #5C6BC0, inset 0 56px 0 #AB47BC';
++ 672     layer.appendChild(rb);
++ 673   }
++ 674 
++ 675   // Clouds (parallax layers)
++ 676   for(let i=0;i<8;i++){
++ 677     const cl=document.createElement('div');
++ 678     cl.className='sky-cloud';
++ 679     const far=i<4;
++ 680     const sz=far?(60+Math.random()*80):(30+Math.random()*50);
++ 681     const spd=far?(22+Math.random()*18):(12+Math.random()*10);
++ 682     cl.style.cssText=`width:${sz}px;height:${sz*.4}px;top:${far?5+Math.random()*25:10+Math.random()*30}%;animation:driftRight ${spd}s linear infinite;animation-delay:${-Math.random()*spd}s;opacity:${far?.35:.55};`;
++ 683     layer.appendChild(cl);
++ 684   }
++ 685 
++ 686   // Wind lines
++ 687   for(let i=0;i<5;i++){
++ 688     const wl=document.createElement('div');
++ 689     wl.className='wind-line';
++ 690     wl.style.cssText=`width:${60+Math.random()*120}px;top:${10+Math.random()*45}%;animation-duration:${6+Math.random()*8}s;animation-delay:${-Math.random()*10}s;`;
++ 691     layer.appendChild(wl);
++ 692   }
++ 693 
++ 694   // Birds
++ 695   if(!isDark()){
++ 696     for(let +){
++ 697       const bird=document.createElement('div');
++ 698    ird.className='bird';
++ 699       bird.style.cssTextp:${8+)*35}%;animation-duration:${10+Math.ran4}s;animation-delay:${-Mathm()*14}s;`;
